@@ -76,6 +76,18 @@ const speechToTextProviders = {
                 credentialNames: ['assemblyAIApi']
             }
         ]
+    },
+    localWhisper: {
+        label: 'Local Whisper',
+        name: 'localWhisper',
+        inputs: [
+            {
+                label: 'baseurl',
+                name: 'baseurl',
+                type: 'string',
+                optional: true
+            }
+        ]
     }
 }
 
@@ -193,6 +205,7 @@ const SpeechToText = ({ dialogProps }) => {
                         <MenuItem value='none'>None</MenuItem>
                         <MenuItem value='openAIWhisper'>OpenAI Whisper</MenuItem>
                         <MenuItem value='assemblyAiTranscribe'>Assembly AI</MenuItem>
+                        <MenuItem value='localWhisper'>localWhisper</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
@@ -293,7 +306,7 @@ const SpeechToText = ({ dialogProps }) => {
             )}
             <StyledButton
                 style={{ marginBottom: 10, marginTop: 10 }}
-                disabled={selectedProvider !== 'none' && !speechToText[selectedProvider]?.credentialId}
+                disabled={false}
                 variant='contained'
                 onClick={onSave}
             >
