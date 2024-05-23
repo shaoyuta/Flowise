@@ -40,6 +40,7 @@ export const availableDependencies = [
     'cohere-ai',
     'd3-dsv',
     'faiss-node',
+    'xfaiss-node',
     'form-data',
     'google-auth-library',
     'graphql',
