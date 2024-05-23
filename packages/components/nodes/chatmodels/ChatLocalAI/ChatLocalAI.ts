@@ -3,6 +3,13 @@ import { BaseCache } from '@langchain/core/caches'
 import { BaseLLMParams } from '@langchain/core/language_models/llms'
 import { ICommonObject, INode, INodeData, INodeParams } from '../../../src/Interface'
 import { getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import { Agent } from "https";
+import { CallbackManagerForLLMRun } from '@langchain/core/callbacks/manager'
+import { BaseMessage, ChatResult } from 'langchain/schema'
+
+const proxyUrl = 'http://child-prc.intel.com:913';
+//const agent = new HttpsProxyAgent(proxyUrl);
 
 class ChatLocalAI_ChatModels implements INode {
     label: string
@@ -82,7 +89,22 @@ class ChatLocalAI_ChatModels implements INode {
                 step: 1,
                 optional: true,
                 additionalParams: true
-            }
+            },
+            {
+                label: 'Proxy',
+                name: 'proxy',
+                type: 'string',
+                optional: true,
+                additionalParams: true
+            },
+            {
+                label: 'Streaming',
+                name: 'streaming',
+                type: 'boolean',
+                optional: true,
+                additionalParams: true,
+                description: 'Enable streaming mode'
+            },
         ]
     }
 
@@ -95,13 +117,16 @@ class ChatLocalAI_ChatModels implements INode {
         const basePath = nodeData.inputs?.basePath as string
         const credentialData = await getCredentialData(nodeData.credential ?? '', options)
         const localAIApiKey = getCredentialParam('localAIApiKey', credentialData, nodeData)
+        const proxy = nodeData.inputs?.proxy as string
+        const streaming = nodeData.inputs?.streaming as boolean
 
         const cache = nodeData.inputs?.cache as BaseCache
 
-        const obj: Partial<OpenAIChatInput> & BaseLLMParams & { openAIApiKey?: string } = {
+        const obj: Partial<OpenAIChatInput> & BaseLLMParams & { openAIApiKey?: string } & { streaming?: boolean }= {
             temperature: parseFloat(temperature),
             modelName,
-            openAIApiKey: 'sk-'
+            openAIApiKey: 'sk-',
+            streaming: streaming
         }
 
         if (maxTokens) obj.maxTokens = parseInt(maxTokens, 10)
@@ -109,11 +134,25 @@ class ChatLocalAI_ChatModels implements INode {
         if (timeout) obj.timeout = parseInt(timeout, 10)
         if (cache) obj.cache = cache
         if (localAIApiKey) obj.openAIApiKey = localAIApiKey
-
-        const model = new ChatOpenAI(obj, { basePath })
+        let model
+        if (proxy){
+            const proxyUrl = proxy;
+            const agent = new HttpsProxyAgent(proxyUrl);
+            model = new ExChatOpenAI(obj, { basePath , httpAgent:agent})
+        }else{
+            model = new ExChatOpenAI(obj, { basePath })
+        }
 
         return model
     }
 }
+
+
+class ExChatOpenAI extends ChatOpenAI {
+    _generate(messages: BaseMessage[], options: this['ParsedCallOptions'], runManager?: CallbackManagerForLLMRun | undefined): Promise<ChatResult> {
+        return super._generate(messages, options, runManager)
+    }
+}
+
 
 module.exports = { nodeClass: ChatLocalAI_ChatModels }
