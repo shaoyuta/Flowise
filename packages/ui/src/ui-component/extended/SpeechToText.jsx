@@ -205,7 +205,7 @@ const SpeechToText = ({ dialogProps }) => {
                         <MenuItem value='none'>None</MenuItem>
                         <MenuItem value='openAIWhisper'>OpenAI Whisper</MenuItem>
                         <MenuItem value='assemblyAiTranscribe'>Assembly AI</MenuItem>
-                        <MenuItem value='localWhisper'>localWhisper</MenuItem>
+                        <MenuItem value='localWhisper'>Local STT Server</MenuItem>
                     </Select>
                 </FormControl>
             </Box>

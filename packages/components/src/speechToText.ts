@@ -39,6 +39,22 @@ export const convertSpeechToText = async (upload: IFileUpload, speechToTextConfi
             if (transcription?.text) {
                 return transcription.text
             }
+        } else if (speechToTextConfig.name === 'localWhisper') {
+            const openAIClientOptions: ClientOptions = {
+                apiKey: "null",
+                baseURL: speechToTextConfig.baseurl
+            }
+            const openAIClient = new OpenAIClient(openAIClientOptions)
+            const transcription = await openAIClient.audio.transcriptions.create({
+                file: new File([new Blob([audio_file])], upload.name),
+                model: 'whisper-1',
+                language: speechToTextConfig?.language,
+                temperature: speechToTextConfig?.temperature ? parseFloat(speechToTextConfig.temperature) : undefined,
+                prompt: speechToTextConfig?.prompt
+            })
+            if (transcription?.text) {
+                return transcription.text
+            }
         }
     } else {
         throw new Error('Speech to text is not selected, but found a recorded audio file. Please fix the chain.')
